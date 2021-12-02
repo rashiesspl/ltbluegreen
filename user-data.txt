@@ -1,10 +1,5 @@
 #!/bin/bash -xe
 
-yum update -y
-yum install httpd -y
-echo 'Hello' >> /var/www/html/index.html
-systemctl restart httpd
-
 ## Code Deploy Agent Bootstrap Script##
 
 
@@ -18,12 +13,22 @@ if [ ${PLAT} = "ubuntu" ]; then
   apt-get -y update
   # Satisfying even ubuntu older versions.
   apt-get -y install jq awscli ruby2.0 || apt-get -y install jq awscli ruby
+  apt update
+  apt install apache2
+  ufw app list
+  ufw allow 'Apache'
+  systemctl start apache2
+  echo 'Hello' >> /var/www/html/index.html
+  systemctl restart apache2
 
 
 
 elif [ ${PLAT} = "amz" ]; then
   yum -y update
   yum install -y aws-cli ruby jq
+  yum install httpd -y 
+  echo 'Hello' >> /var/www/html/index.html 
+  systemctl restart httpd
 
 fi
 
@@ -54,7 +59,7 @@ function execute(){
 if [ ${PLAT} = "ubuntu" ]; then
 
   cd /tmp/
-  wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
+  wget https://aws-codedeploy-ap-south-1.s3.amazonaws.com/latest/install
   chmod +x ./install
 
   if ./install auto; then
@@ -75,7 +80,7 @@ if [ ${PLAT} = "ubuntu" ]; then
 elif [ ${PLAT} = "amz" ]; then
 
   cd /tmp/
-  wget https://aws-codedeploy-${REGION}.s3.amazonaws.com/latest/install
+  wget https://aws-codedeploy-ap-south-1.s3.amazonaws.com/latest/install
   chmod +x ./install
 
     if ./install auto; then
@@ -101,5 +106,4 @@ fi
 
 platformize
 installdep
-REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r ".region")
 execute
